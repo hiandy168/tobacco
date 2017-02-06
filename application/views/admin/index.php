@@ -196,14 +196,52 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             });
 
             $(".btn_jg").click(function(){
-                var yanye_type = $("#choose_yy").val();
-                var zuibang_type = $("#choose_zb").val();
-                var xiangliao_type = $("#choose_xl").val();
-
-
-
+                var peifang_type = $("#peifang_type").val();
+                var md5_uid = '66e16d4c71fe0616c864c5d591ab0be7';
+                $.post(
+                    'index.php?d=admin&c=main&m=start_working',
+                    {md5_uid:md5_uid,peifang_type: peifang_type},
+                    function(data){
+                        if(data['code']){
+                            var working_record_id = data['working_record_id'];
+                            setTimeout("test2("+working_record_id+")",1000);
+                        }
+                    },
+                    'json'
+                );
             });
 
+            $(".btn_compile").click(function(){
+                var working_record_id = $("#working_id").val();
+                var md5_uid = '66e16d4c71fe0616c864c5d591ab0be7';
+                $.post(
+                    'index.php?d=admin&c=main&m=complete_working',
+                    {md5_uid:md5_uid,working_record_id: working_record_id},
+                    function(data){
+                        if(data['code']){
+                            alert("成功存入仓库");
+                            $("#time_jg").val(15);
+                        }
+                    },
+                    'json'
+                );
+            });
+
+            $(".btn_bz").click(function(){
+                var packing_type = $("#packing_type").val();
+                var md5_uid = '66e16d4c71fe0616c864c5d591ab0be7';
+                $.post(
+                    'index.php?d=admin&c=main&m=start_packing',
+                    {md5_uid:md5_uid,packing_type: packing_type},
+                    function(data){
+                        if(data['code']){
+                            var packing_record_id = data['packing_record_id'];
+                            setTimeout("test3("+packing_record_id+")",1000);
+                        }
+                    },
+                    'json'
+                );
+            });
 
 
         });
@@ -231,10 +269,35 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     'json'
                 );
                 clearTimeout("test("+id+","+plant_record_id+")");
-
             }
-
         }
+
+        function test2(working_record_id){
+            var times = $("#time_jg").val();
+            //alert(times);
+            if(times!=0){
+                times--;
+                $("#time_jg").val(times);
+                setTimeout("test2("+working_record_id+")",1000);
+            }else{
+                $("#time_jg").val(times);
+                var md5_uid = '66e16d4c71fe0616c864c5d591ab0be7';
+                $.post(
+                    'index.php?d=admin&c=main&m=end_working',
+                    {md5_uid:md5_uid,working_record_id:working_record_id},
+                    function(data){
+                        if(data['code']){
+                            var working_record_id = data['working_record_id'];
+                            $("#working_id").val(working_record_id);
+                        }
+                    },
+                    'json'
+                );
+                clearTimeout("test2("+working_record_id+")");
+            }
+        }
+
+
     </script>
 
 
@@ -344,38 +407,31 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <div style="margin-bottom: 30px;">
         开始加工：<br><br>
         <span>
-            <select id="choose_yy">
-                <option value="1">生态烟叶</option>
-                <option value="2">洞藏烟叶</option>
-                <option value="3">吕宋烟叶</option>
-                <option value="4">进口烟叶</option>
-            </select>——>
-            <select id="choose_xl">
-                <option value="1">纯天然香料</option>
-                <option value="2">草本植物香料</option>
-                <option value="3">人工合成香料</option>
-                <option value="4">自主核心香料</option>
-            </select>——>
-            <select id="choose_zb">
-                <option value="1">一点红嘴棒</option>
-                <option value="2">玉米嘴棒</option>
-                <option value="3">活性炭嘴棒</option>
-                <option value="4">常规嘴棒</option>
-                <option value="5">咖啡嘴棒</option>
-            </select>——>
-            <select id="choose_bz">
-                <option value="1">常规</option>
-                <option value="2">喜庆</option>
-                <option value="3">复古</option>
-                <option value="4">时尚</option>
-                <option value="5">经典</option>
+            <input type="hidden" id="working_id" value="">
+            <select id="peifang_type">
+                <option value="0">基础配方</option>
+                <option value="1">改良配方</option>
+                <option value="2">经典配方</option>
             </select>——>
             <input class="btn_jg" type="button" value="点击开始加工">——>
-            <input id="time_jg" type="text" value="20" style="width: 30px;">——>
-            <input class="btn_compile" type="button" value="收获成品烟">——>加工完毕成品烟自动存入仓库
+            <input id="time_jg" type="text" value="15" style="width: 30px;">——>
+            <input class="btn_compile" type="button" value="收获成品烟">——>加工完毕，成品烟自动存入仓库
         </span>
     </div>
 
+    <div style="margin-bottom: 30px;">
+        开始包装：<br><br>
+        <span>
+            <select id="packing_type">
+                <option value="0">海韵包装</option>
+                <option value="1">鸿韵包装</option>
+                <option value="2">珍品包装</option>
+            </select>——>
+            <input class="btn_bz" type="button" value="点击开始包装">——>
+            <input id="time_bz" type="text" value="10" style="width: 30px;">——>
+            <input class="btn_compile2" type="button" value="收获盒装烟">——>包装完毕，盒装烟自动存入仓库
+        </span>
+    </div>
 
 </div>
 </body>
