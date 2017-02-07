@@ -243,6 +243,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 );
             });
 
+            $(".btn_compile2").click(function(){
+                var packing_record_id = $("#packing_id").val();
+                var md5_uid = '66e16d4c71fe0616c864c5d591ab0be7';
+                $.post(
+                    'index.php?d=admin&c=main&m=complete_packing',
+                    {md5_uid:md5_uid,packing_record_id: packing_record_id},
+                    function(data){
+                        if(data['code']){
+                            alert("成功存入仓库");
+                            $("#time_bz").val(10);
+                        }
+                    },
+                    'json'
+                );
+            });
 
         });
 
@@ -297,6 +312,32 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             }
         }
 
+        function test3(packing_record_id){
+            var times = $("#time_bz").val();
+            //alert(times);
+            if(times!=0){
+                times--;
+                $("#time_bz").val(times);
+                setTimeout("test3("+packing_record_id+")",1000);
+            }else{
+                $("#time_bz").val(times);
+                var md5_uid = '66e16d4c71fe0616c864c5d591ab0be7';
+                $.post(
+                    'index.php?d=admin&c=main&m=end_packing',
+                    {md5_uid:md5_uid,packing_record_id:packing_record_id},
+                    function(data){
+                        if(data['code']){
+                            var packing_record_id = data['packing_record_id'];
+                            $("#packing_id").val(packing_record_id);
+                        }
+                    },
+                    'json'
+                );
+                clearTimeout("test3("+packing_record_id+")");
+            }
+        }
+
+
 
     </script>
 
@@ -308,6 +349,57 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <input type="button" value="群发信息"></button>
     </div>-->
     <h1>昵称：<?=$nickName;?> 。乐豆：<span id="ledou"><?=$leDouNum?></span> 。等级：<?=$gameGrade?> 。经验值：<?=$experienceValue?></h1>
+
+    <div style="margin-bottom: 30px;">
+        商城购买东西：
+        <span>
+            <select id="goods_id">
+                <option value="1">巴西种子</option>
+                <option value="2">海南种子</option>
+                <option value="3">古巴种子</option>
+                <option value="4">土地</option>
+                <option value="5">粗质烟叶</option>
+                <option value="6">良好烟叶</option>
+                <option value="7">优质烟叶</option>
+                <option value="8">a基础配方</option>
+                <option value="9">b改良配方</option>
+                <option value="10">c经典配方</option>
+                <option value="11">a香料</option>
+                <option value="12">b香料</option>
+                <option value="13">c香料</option>
+                <option value="14">a滤嘴</option>
+                <option value="15">b滤嘴</option>
+                <option value="16">c滤嘴</option>
+                <option value="17">海韵烟支</option>
+                <option value="18">鸿韵烟支</option>
+                <option value="19">珍品烟支</option>
+                <option value="20">海韵包装盒</option>
+                <option value="21">鸿韵包装盒</option>
+                <option value="22">珍品包装盒</option>
+                <option value="23">海韵盒装烟</option>
+                <option value="24">鸿韵盒装烟</option>
+                <option value="25">珍品盒装烟</option>
+            </select>(物品)——>
+            <select id="goods_num">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>(数量)——>
+            <select id="buy_land_way">
+                <option value="0">乐豆购买</option>
+                <option value="1">金币购买</option>
+            </select>(购买方式)——>
+            <input class="btn_buy_land" type="button" value="确认购买">——>购买完毕存入仓库表(zy_store_house)
+        </span>
+    </div>
+
     <div style="margin-bottom: 30px;">
         土地购买：
         <span>
@@ -414,7 +506,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <option value="2">经典配方</option>
             </select>——>
             <input class="btn_jg" type="button" value="点击开始加工">——>
-            <input id="time_jg" type="text" value="15" style="width: 30px;">——>
+            <input id="time_jg" type="text" value="25" style="width: 30px;">——>
             <input class="btn_compile" type="button" value="收获成品烟">——>加工完毕，成品烟自动存入仓库
         </span>
     </div>
@@ -422,13 +514,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <div style="margin-bottom: 30px;">
         开始包装：<br><br>
         <span>
+            <input type="hidden" id="packing_id" value="">
             <select id="packing_type">
                 <option value="0">海韵包装</option>
                 <option value="1">鸿韵包装</option>
                 <option value="2">珍品包装</option>
             </select>——>
             <input class="btn_bz" type="button" value="点击开始包装">——>
-            <input id="time_bz" type="text" value="10" style="width: 30px;">——>
+            <input id="time_bz" type="text" value="30" style="width: 30px;">——>
             <input class="btn_compile2" type="button" value="收获盒装烟">——>包装完毕，盒装烟自动存入仓库
         </span>
     </div>

@@ -515,6 +515,7 @@ class main extends CI_Controller {
      *返回参数：
      * 	    code：返回码 1正确, 0错误
      * 	    message：描述信息
+     *      time:   时间戳
      *      id: 土地id
      *      plant_record_id :种植记录id
      **/
@@ -823,10 +824,11 @@ class main extends CI_Controller {
                             if($affect1&&$affect2&&$affect3){
                                 //保存加工记录
                                 $insert['uId'] = $uId;
+                                $insert['goodsId'] = $peifang_list['becomeGoodsId'];
                                 $insert['peifangId'] = $peifang_list['id'];
                                 $insert['startWorkingTime'] = time();
                                 $insert['status'] = 1;
-                                $working_record_id = $this->working_model->insert($insert);
+                                $working_record_id = $this->working_record_model->insert($insert);
                                 if($working_record_id){
                                     $result = array('code'=>1,'msg'=>'成功','time'=>time(),'working_record_id'=>$working_record_id);
                                 }else{
@@ -871,7 +873,7 @@ class main extends CI_Controller {
         if($uId){
             //判断加工时间是否已经到达完成的时间
             $working_record_id = $this->input->post("working_record_id");
-            $working_arr = $this->working_model->get_column_row('peifangId,status,startWorkingTime', array('id'=>$working_record_id,'uId'=>$uId));
+            $working_arr = $this->working_record_model->get_column_row('peifangId,status,startWorkingTime', array('id'=>$working_record_id,'uId'=>$uId));
             if($working_arr['peifangId']&&$working_arr['status']==1){ //判断加工记录是否存在，并且status==1
                 $need_time = $this->goods_model->get_column_row('needTime', array('id'=>$working_arr['peifangId']));
                 if($need_time['needTime']){
@@ -879,7 +881,7 @@ class main extends CI_Controller {
                         //更新加工记录表加工状态
                         $update_working_record['endWorkingTime'] = time();
                         $update_working_record['status'] = 2;
-                        $res = $this->working_model->update($update_working_record,array('id' => $working_record_id,'uId'=>$uId));
+                        $res = $this->working_record_model->update($update_working_record,array('id' => $working_record_id,'uId'=>$uId));
                         if($res){
                             $result = array('code'=>1,'msg'=>'成功','time'=>time(),'working_record_id'=>$working_record_id);
                         }else{
@@ -922,27 +924,27 @@ class main extends CI_Controller {
         if($uId){
             //判断加工时间是否已经到达完成的时间
             $working_record_id = $this->input->post("working_record_id");
-            $working_status = $this->working_model->get_column_row('status', array('id'=>$working_record_id,'uId'=>$uId));
+            $working_status = $this->working_record_model->get_column_row('status,goodsId', array('id'=>$working_record_id,'uId'=>$uId));
             if($working_status['status']==2){
                 //判断仓库是否已经存满物品
                 if($this->is_store_full($md5_uid)){
                     //更新加工记录表加工状态
                     $update_working_record['status'] = 3;//加工记录状态变为3：已经存入仓库。
-                    $res = $this->working_model->update($update_working_record,array('id' => $working_record_id,'uId'=>$uId));
+                    $res = $this->working_record_model->update($update_working_record,array('id' => $working_record_id,'uId'=>$uId));
                     if($res){
                         //收获一支烟，仓库多一支烟
-                        $isexist = $this->db->get_where('zy_store_house', array('goodsId' => 17,'uId'=>$uId))->row_array();
+                        $isexist = $this->db->get_where('zy_store_house', array('goodsId' => $working_status['goodsId'],'uId'=>$uId))->row_array();
                         if($isexist['goodsId']){
                             $update_num['num'] = $isexist['num']+1;
                             $update_num['updateTime'] = time();
-                            $affect = $this->store_house_model->update($update_num,array('goodsId' => 17,'uId'=>$uId));
+                            $affect = $this->store_house_model->update($update_num,array('goodsId' => $working_status['goodsId'],'uId'=>$uId));
                             if($affect){
                                 $result = array('code'=>1,'msg'=>'成功','time'=>time(),'working_record_id'=>$working_record_id);
                             }else{
                                 $result = array('code'=>0,'msg'=>'更新仓库表错误','time'=>time());
                             }
                         }else{
-                            $insert['goodsId'] = 17;
+                            $insert['goodsId'] = $working_status['goodsId'];
                             $insert['uId'] = $uId;
                             $insert['num'] = 1;
                             $insert['updateTime'] = time();
@@ -969,16 +971,16 @@ class main extends CI_Controller {
     }
 
     /**
-     *接口名称：开始加工接口
+     *接口名称：开始包装接口
      *接口地址：http://192.168.1.217/tobacco/index.php?d=admin&c=main&m=start_packing
      *接收方式：post
      *接收参数：
      *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
-     *      packing_type：配方类型 0基础配方，1改良配方，2经典配方
+     *      packing_type：包装类型 0海韵包装，1鸿韵包装，2珍品包装
      *返回参数：
      * 	    code：返回码 0错误，1正确
      * 	    message：描述信息
-     *      working_record_id：加工过程id
+     *      packing_record_id：包装过程id
      **/
     public function start_packing(){
         //根据md5Uid获取uId
@@ -990,54 +992,155 @@ class main extends CI_Controller {
             $packing_list = $this->goods_model->get_column_row("*",array("goodsClass"=>8,"goodsType"=>$packing_type));
             $packing_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['id']));
             if(!empty($packing_list)&&$packing_num['num']>0){
-                //根据配方，查询仓库里的烟叶是否>=配方需要的烟叶数量
-                $yanye_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['yanyeId']));
-                if($yanye_num['num']>=$packing_list['yanyeNum']){
-                    //根据配方，查询仓库里的香料是否>=配方需要的香料数量
-                    $spice_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['spiceId']));
-                    if($spice_num['num']>=$packing_list['spiceNum']){
-                        //根据配方，查询仓库里的滤嘴是否>=配方需要的滤嘴数量
-                        $filter_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['filterId']));
-                        if($filter_num['num']>=$packing_list['filterNum']){
-                            //成功加工一支烟，仓库减去相应的原料
-                            $update_yanye_num['num'] = $yanye_num['num']-$packing_list['yanyeNum'];
-                            $update_yanye_num['updateTime'] = time();
-                            $affect1 = $this->store_house_model->update($update_yanye_num,array('goodsId' => $packing_list['yanyeId'],'uId'=>$uId));
+                //根据包装方式，查询仓库里的烟是否>=包装需要的烟数量
+                $yan_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['cigaretteId']));
+                if($yan_num['num']>=$packing_list['cigaretteNum']){
+                    //成功包装一盒烟，仓库减去相应的原料
+                    $update_yan_num['num'] = $yan_num['num']-$packing_list['cigaretteNum'];
+                    $update_yan_num['updateTime'] = time();
+                    $affect1 = $this->store_house_model->update($update_yan_num,array('goodsId' => $packing_list['cigaretteId'],'uId'=>$uId));
 
-                            $update_spice_num['num'] = $spice_num['num']-$packing_list['spiceNum'];
-                            $update_spice_num['updateTime'] = time();
-                            $affect2 = $this->store_house_model->update($update_spice_num,array('goodsId' => $peifang_list['spiceId'],'uId'=>$uId));
+                    $update_packing_num['num'] = $packing_num['num']-1;//包装盒默认减 1
+                    $update_packing_num['updateTime'] = time();
+                    $affect2 = $this->store_house_model->update($update_packing_num,array('goodsId' => $packing_list['id'],'uId'=>$uId));
 
-                            $update_filter_num['num'] = $filter_num['num']-$peifang_list['filterNum'];
-                            $update_filter_num['updateTime'] = time();
-                            $affect3 = $this->store_house_model->update($update_filter_num,array('goodsId' => $peifang_list['filterId'],'uId'=>$uId));
-
-                            if($affect1&&$affect2&&$affect3){
-                                //保存加工记录
-                                $insert['uId'] = $uId;
-                                $insert['peifangId'] = $peifang_list['id'];
-                                $insert['startWorkingTime'] = time();
-                                $insert['status'] = 1;
-                                $working_record_id = $this->working_model->insert($insert);
-                                if($working_record_id){
-                                    $result = array('code'=>1,'msg'=>'成功','time'=>time(),'working_record_id'=>$working_record_id);
-                                }else{
-                                    $result = array('code'=>0,'msg'=>'保存加工记录表错误','time'=>time());
-                                }
-                            }else{
-                                $result = array('code'=>0,'msg'=>'仓库库存更新成功','time'=>time());
-                            }
+                    if($affect1&&$affect2){
+                        //保存包装记录
+                        $insert['uId'] = $uId;
+                        $insert['goodsId'] = $packing_list['becomeGoodsId'];
+                        $insert['packingId'] = $packing_list['id'];
+                        $insert['startPackingTime'] = time();
+                        $insert['status'] = 1;
+                        $packing_record_id = $this->packing_record_model->insert($insert);
+                        if($packing_record_id){
+                            $result = array('code'=>1,'msg'=>'成功','time'=>time(),'packing_record_id'=>$packing_record_id);
                         }else{
-                            $result = array('code'=>0,'msg'=>'滤嘴不足','time'=>time());
+                            $result = array('code'=>0,'msg'=>'保存包装记录表错误','time'=>time());
                         }
                     }else{
-                        $result = array('code'=>0,'msg'=>'香料不足','time'=>time());
+                        $result = array('code'=>0,'msg'=>'仓库库存更新成功','time'=>time());
                     }
+
                 }else{
-                    $result = array('code'=>0,'msg'=>'烟叶不足','time'=>time());
+                    $result = array('code'=>0,'msg'=>'烟不足','time'=>time());
                 }
             }else{
-                $result = array('code'=>0,'msg'=>'没有此配方','time'=>time());
+                $result = array('code'=>0,'msg'=>'没有此包装方式','time'=>time());
+            }
+        }else{
+            $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
+        }
+        echo json_encode($result);
+    }
+
+    /**
+     *接口名称：包装结束接口
+     *接口地址：http://192.168.1.217/tobacco/index.php?d=admin&c=main&m=end_packing
+     *接收方式：post
+     *接收参数：
+     *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
+     *      packing_record_id：包装过程id
+     *返回参数：
+     * 	    code：返回码 0错误，1正确
+     * 	    message：描述信息
+     *      packing_record_id：包装过程id
+     **/
+    public function end_packing(){
+        $md5_uid = $this->input->post("md5_uid");
+        $uId = $this->user_model->get_uid($md5_uid);
+        if($uId){
+            //判断包装时间是否已经到达完成的时间
+            $packing_record_id = $this->input->post("packing_record_id");
+            $packing_arr = $this->packing_record_model->get_column_row('packingId,status,startPackingTime', array('id'=>$packing_record_id,'uId'=>$uId));
+            if($packing_arr['packingId']&&$packing_arr['status']==1){ //判断加工记录是否存在，并且status==1
+                $need_time = $this->goods_model->get_column_row('needTime', array('id'=>$packing_arr['packingId']));
+                if($need_time['needTime']){
+                    if( (intval(time()) - intval($packing_arr['startPackingTime'])) >= $need_time['needTime']){
+                        //更新包装记录表加工状态
+                        $update_packing_record['endPackingTime'] = time();
+                        $update_packing_record['status'] = 2;
+                        $res = $this->packing_record_model->update($update_packing_record,array('id' => $packing_record_id,'uId'=>$uId));
+                        if($res){
+                            $result = array('code'=>1,'msg'=>'成功','time'=>time(),'packing_record_id'=>$packing_record_id);
+                        }else{
+                            $result = array('code'=>0,'msg'=>'更新包装记录表错误','time'=>time());
+                        }
+
+                    }else{
+                        $result = array('code'=>0,'msg'=>'包装尚未完成','time'=>time());
+                    }
+                }else{
+                    $result = array('code'=>0,'msg'=>'包装时间未设置','time'=>time());
+                }
+            }else{
+                $result = array('code'=>0,'msg'=>'包装记录不存在','time'=>time());
+            }
+        }else{
+            $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
+        }
+
+        echo json_encode($result);
+    }
+
+    /**
+     *接口名称：包装完成后，将成品烟存入仓库接口
+     *接口地址：http://192.168.1.217/tobacco/index.php?d=admin&c=main&m=complete_packing
+     *接收方式：post
+     *接收参数：
+     *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
+     *      packing_record_id：包装记录id
+     *返回参数：
+     * 	    code：返回码 0错误，1正确，2仓库已满，暂缓收割
+     * 	    message：描述信息
+     *      packing_record_id :包装记录id
+     **/
+    public function complete_packing(){
+        //$uId = $_SESSION['userId'];
+        //根据md5Uid获取uId
+        $md5_uid = $this->input->post("md5_uid");
+        $uId = $this->user_model->get_uid($md5_uid);
+        if($uId){
+            //判断包装时间是否已经到达完成的时间
+            $packing_record_id = $this->input->post("packing_record_id");
+            $packing_status = $this->packing_record_model->get_column_row('status,goodsId', array('id'=>$packing_record_id,'uId'=>$uId));
+            if($packing_status['status']==2){
+                //判断仓库是否已经存满物品
+                if($this->is_store_full($md5_uid)){
+                    //更新加工记录表加工状态
+                    $update_packing_record['status'] = 3;//加工记录状态变为3：已经存入仓库。
+                    $res = $this->packing_record_model->update($update_packing_record,array('id' => $packing_record_id,'uId'=>$uId));
+                    if($res){
+                        //收获一盒烟，仓库多一盒烟
+                        $isexist = $this->db->get_where('zy_store_house', array('goodsId' => $packing_status['goodsId'],'uId'=>$uId))->row_array();
+                        if($isexist['goodsId']){
+                            $update_num['num'] = $isexist['num']+1;
+                            $update_num['updateTime'] = time();
+                            $affect = $this->store_house_model->update($update_num,array('goodsId' => $packing_status['goodsId'],'uId'=>$uId));
+                            if($affect){
+                                $result = array('code'=>1,'msg'=>'成功','time'=>time(),'packing_record_id'=>$packing_record_id);
+                            }else{
+                                $result = array('code'=>0,'msg'=>'更新仓库表错误','time'=>time());
+                            }
+                        }else{
+                            $insert['goodsId'] = $packing_status['goodsId'];
+                            $insert['uId'] = $uId;
+                            $insert['num'] = 1;
+                            $insert['updateTime'] = time();
+                            $res = $this->store_house_model->insert($insert);
+                            if($res){
+                                $result = array('code'=>1,'msg'=>'成功','time'=>time(),'packing_record_id'=>$packing_record_id);
+                            }else{
+                                $result = array('code'=>0,'msg'=>'保存仓库表错误','time'=>time());
+                            }
+                        }
+                    }else{
+                        $result = array('code'=>0,'msg'=>'更新加工记录表错误','time'=>time());
+                    }
+                }else{
+                    $result = array('code'=>2,'msg'=>'仓库已满，请升级仓库','time'=>time());
+                }
+            }else{
+                $result = array('code'=>0,'msg'=>'包装尚未完成','time'=>time());
             }
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());

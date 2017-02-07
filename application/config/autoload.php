@@ -94,7 +94,8 @@ $autoload['drivers'] = array();
 */
 $autoload['helper'] = array(
     'url',
-    'common'
+    'common',
+    'api_common'
 );
 
 /*
@@ -138,4 +139,4 @@ $autoload['language'] = array();
 |
 |	$autoload['model'] = array('first_model' => 'first');
 */
-$autoload['model'] = array( 'content_model','my_common_model','user_model','buy_record_model','goods_model','land_model','plant_record_model','store_house_model','working_model');
+$autoload['model'] = array( 'content_model','my_common_model','user_model','buy_record_model','goods_model','land_model','plant_record_model','store_house_model','working_record_model','packing_record_model');

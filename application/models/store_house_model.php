@@ -20,13 +20,13 @@ class store_house_model extends content_model
 
     //获取当前仓库存储的 种子 数量
     public function get_seed_num(){
-        $res = $this->db->query("SELECT g.id,g.goodsName,h.num FROM zy_store_house h,zy_goods g WHERE g.goodsClass = 1 AND h.goodsId=g.id")->result_array();
+        $res = $this->db->query("SELECT g.id,g.goodsName,h.num FROM zy_store_house h,zy_goods g WHERE g.goodsClass = 1 AND h.goodsId=g.id AND h.num>0")->result_array();
         return $res;
     }
 
     //获取当前仓库存储的所有物品名称以及对应的数量
     public function get_all_num(){
-        $res = $this->db->query("SELECT g.id,g.goodsName,h.num FROM zy_store_house h,zy_goods g WHERE h.goodsId=g.id")->result_array();
+        $res = $this->db->query("SELECT g.id,g.goodsName,h.num FROM zy_store_house h,zy_goods g WHERE h.goodsId=g.id AND h.num>0")->result_array();
         return $res;
     }
 
