@@ -29,10 +29,10 @@ class packing extends base {
             $packing_type = $this->input->post("packing_type");
             //查询是否有此包装,并且仓库里面已经存有
             $packing_list = $this->goods_model->get_column_row("*",array("goodsClass"=>8,"goodsType"=>$packing_type));
-            $packing_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['id']));
+            $packing_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['id'],'uId'=>$uId));
             if(!empty($packing_list)&&$packing_num['num']>0){
                 //根据包装方式，查询仓库里的烟是否>=包装需要的烟数量
-                $yan_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['cigaretteId']));
+                $yan_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$packing_list['cigaretteId'],'uId'=>$uId));
                 if($yan_num['num']>=$packing_list['cigaretteNum']){
                     //成功包装一盒烟，仓库减去相应的原料
                     $update_yan_num['num'] = $yan_num['num']-$packing_list['cigaretteNum'];
@@ -42,7 +42,6 @@ class packing extends base {
                     $update_packing_num['num'] = $packing_num['num']-1;//包装盒默认减 1
                     $update_packing_num['updateTime'] = time();
                     $affect2 = $this->store_house_model->update($update_packing_num,array('goodsId' => $packing_list['id'],'uId'=>$uId));
-
                     if($affect1&&$affect2){
                         //保存包装记录
                         $insert['uId'] = $uId;

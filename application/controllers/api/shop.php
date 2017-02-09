@@ -149,9 +149,68 @@ class shop extends base {
         echo json_encode($result);
     }
 
+    /**
+     *接口名称：售卖物品接口
+     *接口地址：http://192.168.1.217/tobacco/index.php?d=api&c=shop&m=sale
+     *接收方式：post
+     *接收参数：
+     *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
+     *      goods_id：售卖物品的id
+     *      goods_num：售卖物品的数量
+     *      goods_price：售卖物品的单价
+     *      goods_total_price：售卖物品的总价
+     *      pay_type：售卖方式：0乐豆售卖，1金币售卖
+     *返回参数：
+     * 	    code：返回码 1正确, 0错误
+     * 	    message：描述信息
+     *      time:   时间戳
+     *
+     **/
 
-
-
+    public function sale(){
+        //根据md5Uid获取uId
+        $md5_uid = $this->input->post("md5_uid");
+        $uId = $this->user_model->get_uid($md5_uid);
+        if($uId){
+            $goods_num = $this->input->post("goods_num");
+            $goods_id = $this->input->post("goods_id");
+            //仓库查看库存是否 >= 订单上的数量
+            $current_num = $this->store_house_model->get_column_row('id,num',array('id'=>$goods_id,'uId'=>$uId));
+            if($goods_num&&$current_num['num']>=$goods_num){
+                $goods_price = $this->input->post("goods_price");
+                $goods_total_price = $this->input->post("goods_total_price");
+                $pay_type = $this->input->post("pay_type");
+                //保存售卖记录
+                $insert['uId'] = $uId;
+                $insert['goodsId'] = $goods_id;
+                $insert['buyerId'] = 0;
+                $insert['saleNum'] = $goods_num;
+                $insert['salePrice'] = $goods_price;
+                $insert['saleTotalPrice'] = $goods_total_price;
+                $insert['payType'] = $pay_type;
+                $insert['addTime'] = time();
+                $sale_record_id = $this->sale_record_model->insert($insert);
+                if($sale_record_id){
+                    //更新库存
+                    $update['num'] = $current_num['num']-$goods_num;
+                    $update['updateTime'] = time();
+                    $res = $this->store_house_model->update($update,array('id'=>$current_num['id']));
+                    if($res){
+                        $result = array('code'=>1,'msg'=>'售卖成功','time'=>time());
+                    }else{
+                        $result = array('code'=>1,'msg'=>'售卖失败','time'=>time());
+                    }
+                }else{
+                    $result = array('code'=>0,'msg'=>'售卖记录写入数据库错误','time'=>time());
+                }
+            }else{
+                $result = array('code'=>0,'msg'=>'库存不足或售卖的物品数量必须大于0','time'=>time());
+            }
+        }else{
+            $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
+        }
+        echo json_encode($result);
+    }
 
 
 

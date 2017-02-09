@@ -119,8 +119,11 @@ class main extends CI_Controller {
                 $user_data['ChannelID'] = $this->ChannelID;
                 $user_data['RoomID'] 	= $this->RoomID;
                 $user_data['GameID'] 	= $this->GameID;
-
                 $user_data['baseStrRandCode']=$this->baseStrRand;
+                //获取随机字符串
+                $rand = rand(0,45);
+                $rand_str = substr($this->baseStrRand,$rand,6).$wx_info['openId'].'ywz';
+                $user_data['md5Uid'] = md5($rand_str);
                 $insert_sql = $this->db->insert_string('zy_user',$user_data);
                 $insert_sql = str_replace('INSERT', 'INSERT ignore ', $insert_sql);
                 $this->db->query($insert_sql);
@@ -265,6 +268,10 @@ class main extends CI_Controller {
             $user_data['RoomID'] 	= $this->RoomID;
             $user_data['GameID'] 	= $this->GameID;
             $user_data['baseStrRandCode']=$this->baseStrRand;
+            //获取随机字符串
+            $rand = rand(0,45);
+            $rand_str = substr($this->baseStrRand,$rand,6).$openid.'ywz';
+            $user_data['md5Uid'] = md5($rand_str);
             $insert_sql = $this->db->insert_string('zy_gamedev_user', $user_data);
             $insert_sql = str_replace('INSERT', 'INSERT ignore ', $insert_sql);
             $this->db->query($insert_sql);

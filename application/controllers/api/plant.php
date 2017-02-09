@@ -9,6 +9,7 @@ class plant extends base {
         parent::__construct();
     }
 
+
     /**
      *接口名称：播种接口
      *接口地址：http://192.168.1.217/tobacco/index.php?d=api&c=plant&m=start_plant
@@ -211,7 +212,7 @@ class plant extends base {
     }
 
     /**
-     *接口名称：获取所有土地及其种植的物品、状态；加工状态；包装状态
+     *接口名称：获取所有土地及其种植的物品、状态；加工状态；包装状态；种子培育状态；配方研究状态
      *接口地址：http://192.168.1.217/tobacco/index.php?d=api&c=plant&m=current_all_status
      *接收方式：post
      *接收参数：
@@ -252,11 +253,28 @@ class plant extends base {
      *              needTime:   包装所需要的时长
      *              becomeGoodsId:  包装完成之后的物品（盒装烟）的id
      *              becomeGoodsName:  包装完成之后的物品（盒装烟）的中文名称（烟支经过包装后，变为“海韵”盒装烟）
+     *          breed:  所有种子培育状态
+     *              breed_record_id: 种子培育记录id
+     *              startBreedTime：开始培育时间
+     *              endBreedTime：结束培育时间（当培育状态为正在培育时，即尚未培育完成，该值为空）
+     *              status：培育状态 （1正在培育、2培育完成）
+     *              goodsId：所要培育的种子的id
+     *              goodsName：所要培育的种子的中文名称
+     *              needTime:   培育种子所需要的时长
+     *          research:  所有配方研究状态
+     *              research_record_id: 配方研究记录id
+     *              startResearchTime：开始研究时间
+     *              endResearchTime：结束研究时间（当培育状态为正在培育时，即尚未培育完成，该值为空）
+     *              status：研究状态 （1正在研究、2培育研究）
+     *              goodsId：所要研究的配方的id
+     *              goodsName：所要研究的配方的中文名称
+     *              needTime:   配方研究所需要的时长
      **/
     public function current_all_status(){
         $md5_uid = $this->input->post("md5_uid");
         $uId = $this->user_model->get_uid($md5_uid);
         if($uId){
+            //种植
             $res = $this->land_model->get_current_all_plant($uId);
             foreach($res as $key=>$value){
                 if($value['landStatus']!=0){
@@ -281,7 +299,7 @@ class plant extends base {
                     $res[$key]['goodsName'] = null;
                 }
             }
-
+            //加工
             $working_res = $this->working_record_model->get_current_all_working($uId);
             foreach($working_res as $key=>$value){
                 $need_working = $this->goods_model->get_column_row('goodsName,needTime',array('id'=>$value['peifangId']));
@@ -303,7 +321,7 @@ class plant extends base {
                 $working_res[$key]['becomeGoodsName'] = $become['goodsName'];
                 unset($working_res[$key]['goodsId']);
             }
-
+            //包装
             $packing_res = $this->packing_record_model->get_current_all_packing($uId);
             foreach($packing_res as $key=>$value){
                 $need_packing = $this->goods_model->get_column_row('goodsName,needTime',array('id'=>$value['packingId']));
@@ -325,10 +343,46 @@ class plant extends base {
                 $packing_res[$key]['becomeGoodsName'] = $become['goodsName'];
                 unset($packing_res[$key]['goodsId']);
             }
+            //种子培育
+            $breed_res = $this->breed_record_model->get_current_all_breed($uId);
+            foreach($breed_res as $key=>$value){
+                $need_breed = $this->goods_model->get_column_row('goodsName,breedTime',array('id'=>$value['goodsId']));
+                if($value['status']==1){
+                    //判断是否已经培育完成，完成则更新种子培育表
+                    if(intval(time())-intval($value['startBreedTime']) >= intval($need_breed['breedTime'])){
+                        $update_breed_record['status'] = 2;
+                        $update_breed_record['endBreedTime'] = time();
+                        $this->breed_record_model->update($update_breed_record,array('id'=>$value['breed_record_id'],'uId'=>$uId));
+                        $breed_res[$key]['status'] = 2;
+                        $breed_res[$key]['endBreedTime'] = $update_breed_record['endBreedTime'];
+                    }
+                }
+                $breed_res[$key]['needTime'] = $need_breed['breedTime'];
+                $breed_res[$key]['goodsName'] = $need_breed['goodsName'];
+            }
+            //配方研究
+            $research_res = $this->research_record_model->get_current_all_research($uId);
+            foreach($research_res as $key=>$value){
+                $need_research = $this->goods_model->get_column_row('goodsName,breedTime',array('id'=>$value['goodsId']));
+                if($value['status']==1){
+                    //判断配方是否已经研究完成，完成则更新配方研究表
+                    if(intval(time())-intval($value['startResearchTime']) >= intval($need_research['breedTime'])){
+                        $update_research_record['status'] = 2;
+                        $update_research_record['endResearchTime'] = time();
+                        $this->research_record_model->update($update_research_record,array('id'=>$value['research_record_id'],'uId'=>$uId));
+                        $research_res[$key]['status'] = 2;
+                        $research_res[$key]['endResearchTime'] = $update_research_record['endResearchTime'];
+                    }
+                }
+                $research_res[$key]['needTime'] = $need_research['breedTime'];
+                $research_res[$key]['goodsName'] = $need_research['goodsName'];
+            }
 
             $data['plant'] = $res;
             $data['working'] = $working_res;
             $data['packing'] = $packing_res;
+            $data['breed'] = $breed_res;
+            $data['research'] = $research_res;
             $result = array('code'=>1,'msg'=>'成功','time'=>time(),'data'=>$data);
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());

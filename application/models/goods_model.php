@@ -12,10 +12,11 @@ class goods_model extends content_model
     }
 
     //从物品表zy_goods获取土地属性信息
-    private function get_land_msg(){
+    public function get_land_msg(){
         $res = $this->get_one(4,'id');
         return $res;
     }
+
 
 
 

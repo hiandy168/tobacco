@@ -29,16 +29,16 @@ class working extends base {
             $peifang_type = $this->input->post("peifang_type");
             //查询是否有此配方,并且仓库里面已经存有
             $peifang_list = $this->goods_model->get_column_row("*",array("goodsClass"=>4,"goodsType"=>$peifang_type));
-            $peifang_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['id']));
+            $peifang_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['id'],'uId'=>$uId));
             if(!empty($peifang_list)&&$peifang_num['num']>0){
                 //根据配方，查询仓库里的烟叶是否>=配方需要的烟叶数量
-                $yanye_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['yanyeId']));
+                $yanye_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['yanyeId'],'uId'=>$uId));
                 if($yanye_num['num']>=$peifang_list['yanyeNum']){
                     //根据配方，查询仓库里的香料是否>=配方需要的香料数量
-                    $spice_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['spiceId']));
+                    $spice_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['spiceId'],'uId'=>$uId));
                     if($spice_num['num']>=$peifang_list['spiceNum']){
                         //根据配方，查询仓库里的滤嘴是否>=配方需要的滤嘴数量
-                        $filter_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['filterId']));
+                        $filter_num = $this->store_house_model->get_column_row("num",array("goodsId"=>$peifang_list['filterId'],'uId'=>$uId));
                         if($filter_num['num']>=$peifang_list['filterNum']){
                             //成功加工一支烟，仓库减去相应的原料
                             $update_yanye_num['num'] = $yanye_num['num']-$peifang_list['yanyeNum'];
