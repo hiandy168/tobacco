@@ -1,4 +1,7 @@
 <?php
+
+header("Access-Control-Allow-Origin: *");//需要跨域请求的，加上这句
+
 /**
  * CodeIgniter
  *

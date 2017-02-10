@@ -70,7 +70,7 @@ class plant extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -130,7 +130,7 @@ class plant extends base {
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
 
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -208,12 +208,12 @@ class plant extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
      *接口名称：获取所有土地及其种植的物品、状态；加工状态；包装状态；种子培育状态；配方研究状态
-     *接口地址：http://192.168.1.217/tobacco/index.php?d=api&c=plant&m=current_all_status
+     *接口地址：http://192.168.1.217/tobacco/index.php?d=api&c=plant&m=initialize
      *接收方式：post
      *接收参数：
      *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
@@ -270,7 +270,7 @@ class plant extends base {
      *              goodsName：所要研究的配方的中文名称
      *              needTime:   配方研究所需要的时长
      **/
-    public function current_all_status(){
+    public function initialize(){
         $md5_uid = $this->input->post("md5_uid");
         $uId = $this->user_model->get_uid($md5_uid);
         if($uId){
@@ -387,7 +387,7 @@ class plant extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
 

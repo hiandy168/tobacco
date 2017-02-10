@@ -34,7 +34,7 @@ class shop extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -146,8 +146,46 @@ class shop extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
+
+    /**
+     *接口名称：售卖物品列表接口
+     *接口地址：http://192.168.1.217/tobacco/index.php?d=api&c=shop&m=sale_goods_lists
+     *接收方式：post
+     *接收参数：
+     *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
+     *返回参数：
+     * 	    code：返回码 1正确, 0错误
+     * 	    message：描述信息
+     *      time:   时间戳
+     *      goods_id：售卖物品的id
+     *      goodsName: 售卖物品名称
+     *      goods_num：售卖物品的数量
+     *      salePriceLD：售卖单价（以乐豆售卖）
+     *      salePriceJB：售卖单价（以金币售卖）
+     **/
+    public function sale_goods_lists(){
+        //根据md5Uid获取uId
+        $md5_uid = $this->input->post("md5_uid");
+        $uId = $this->user_model->get_uid($md5_uid);
+        if($uId){
+            $res = $this->store_house_model->get_sale_num($uId);//获取仓库所有物品名称和对应数量
+            $temp = array();
+            foreach($res as $key=>$value){
+                $temp[$value['id']] = $value;
+            }
+            if($res){
+                $result = array('code'=>1,'msg'=>'成功','time'=>time(),'data'=>$temp);
+            }else{
+                $result = array('code'=>0,'msg'=>'物品不存在','time'=>time());
+            }
+        }else{
+            $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
+        }
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
+    }
+
 
     /**
      *接口名称：售卖物品接口
@@ -157,14 +195,12 @@ class shop extends base {
      *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
      *      goods_id：售卖物品的id
      *      goods_num：售卖物品的数量
-     *      goods_price：售卖物品的单价
-     *      goods_total_price：售卖物品的总价
      *      pay_type：售卖方式：0乐豆售卖，1金币售卖
      *返回参数：
      * 	    code：返回码 1正确, 0错误
      * 	    message：描述信息
      *      time:   时间戳
-     *
+     *      sale_record_id: 售卖记录id
      **/
 
     public function sale(){
@@ -175,11 +211,19 @@ class shop extends base {
             $goods_num = $this->input->post("goods_num");
             $goods_id = $this->input->post("goods_id");
             //仓库查看库存是否 >= 订单上的数量
-            $current_num = $this->store_house_model->get_column_row('id,num',array('id'=>$goods_id,'uId'=>$uId));
+            $current_num = $this->store_house_model->get_column_row('num',array('goodsId'=>$goods_id,'uId'=>$uId));
             if($goods_num&&$current_num['num']>=$goods_num){
-                $goods_price = $this->input->post("goods_price");
-                $goods_total_price = $this->input->post("goods_total_price");
+                //获取商品售卖单价
                 $pay_type = $this->input->post("pay_type");
+                if($pay_type==0){
+                    $price = $this->goods_model->get_column_row('salePriceLD',array('id'=>$goods_id));
+                    $goods_price = $price['salePriceLD'];
+                }else{
+                    $price = $this->goods_model->get_column_row('salePriceJB',array('id'=>$goods_id));
+                    $goods_price = $price['salePriceJB'];
+                }
+                $goods_total_price = $goods_price*$goods_num;
+
                 //保存售卖记录
                 $insert['uId'] = $uId;
                 $insert['goodsId'] = $goods_id;
@@ -194,11 +238,24 @@ class shop extends base {
                     //更新库存
                     $update['num'] = $current_num['num']-$goods_num;
                     $update['updateTime'] = time();
-                    $res = $this->store_house_model->update($update,array('id'=>$current_num['id']));
+                    $res = $this->store_house_model->update($update,array('goodsId'=>$goods_id,'uId'=>$uId));
                     if($res){
-                        $result = array('code'=>1,'msg'=>'售卖成功','time'=>time());
+                        //更新金币
+                        if($pay_type==0){
+                            $ld_num = $this->user_model->get_column_row('leDouNum',array('userId'=>$uId));
+                            $update_ld['leDouNum'] = $ld_num['leDouNum']+$goods_total_price;
+                        }else if($pay_type==1){
+                            $jb_num = $this->user_model->get_column_row('goldNum',array('userId'=>$uId));
+                            $update_ld['goldNum'] = $jb_num['goldNum']+$goods_total_price;
+                        }
+                        $affect = $this->user_model->update($update_ld,array('userId'=>$uId));
+                        if($affect){
+                            $result = array('code'=>1,'msg'=>'售卖成功','time'=>time(),'sale_record_id'=>$sale_record_id);
+                        }else{
+                            $result = array('code'=>1,'msg'=>'更新金币失败','time'=>time());
+                        }
                     }else{
-                        $result = array('code'=>1,'msg'=>'售卖失败','time'=>time());
+                        $result = array('code'=>1,'msg'=>'更新仓库失败','time'=>time());
                     }
                 }else{
                     $result = array('code'=>0,'msg'=>'售卖记录写入数据库错误','time'=>time());
@@ -209,7 +266,7 @@ class shop extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
 

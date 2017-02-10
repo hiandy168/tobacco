@@ -21,13 +21,14 @@ class store extends base {
      *      id: 物品id
      *      goodsName :物品名称
      *      num：物品数量
+     *      thumb: 物品图片地址
      **/
     public function get_seed(){
         //根据md5Uid获取uId
         $md5_uid = $this->input->post("md5_uid");
         $uId = $this->user_model->get_uid($md5_uid);
         if($uId){
-            $res = $this->store_house_model->get_seed_num();
+            $res = $this->store_house_model->get_seed_num($uId);
             if($res){
                 $result = array('code'=>1,'msg'=>'成功','time'=>time(),'data'=>$res);
             }else{
@@ -36,7 +37,7 @@ class store extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -59,7 +60,7 @@ class store extends base {
         $md5_uid = $this->input->post("md5_uid");
         $uId = $this->user_model->get_uid($md5_uid);
         if($uId){
-            $res = $this->store_house_model->get_all_num();//获取仓库所有物品名称和对应数量
+            $res = $this->store_house_model->get_all_num($uId);//获取仓库所有物品名称和对应数量
             $temp = array();
             foreach($res as $key=>$value){
                 $temp[$value['id']] = $value;
@@ -78,7 +79,7 @@ class store extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
 

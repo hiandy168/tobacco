@@ -81,7 +81,7 @@ class breed extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -131,7 +131,7 @@ class breed extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -197,7 +197,7 @@ class breed extends base {
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
         }
-        echo json_encode($result);
+        echo json_encode($result,JSON_UNESCAPED_UNICODE);
     }
 
 
