@@ -22,6 +22,7 @@ class shop extends base {
      *      goodsName :物品名称
      *      priceByLD：用乐豆购买物品的价格
      *      priceByJB：用金币购买物品的价格
+     *      thumb : 物品的图片
      **/
 
     public function lists(){
@@ -29,7 +30,7 @@ class shop extends base {
         $md5_uid = $this->input->post("md5_uid");
         $uId = $this->user_model->get_uid($md5_uid);
         if($uId){
-            $res = $this->goods_model->get_list("id,goodsName,priceByLD,priceByJB",'',$order = 'id',$offset = 0, $limit = 50);
+            $res = $this->goods_model->get_list("id,goodsName,thumb,priceByLD,priceByJB",'',$order = 'id',$offset = 0, $limit = 50);
             $result = array('code'=>1,'msg'=>'成功','time'=>time(),'data'=>$res);
         }else{
             $result = array('code'=>0,'msg'=>'没有此用户','time'=>time());
@@ -161,6 +162,7 @@ class shop extends base {
      *      time:   时间戳
      *      goods_id：售卖物品的id
      *      goodsName: 售卖物品名称
+     *      thumb : 物品的图片
      *      goods_num：售卖物品的数量
      *      salePriceLD：售卖单价（以乐豆售卖）
      *      salePriceJB：售卖单价（以金币售卖）

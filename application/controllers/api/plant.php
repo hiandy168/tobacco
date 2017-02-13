@@ -24,6 +24,7 @@ class plant extends base {
      *      time:   时间戳
      *      land_id: 土地id
      *      plant_record_id :种植记录id
+     *      begin_thumb : 刚播种时的苗子的图片
      **/
 
     public function start_plant(){
@@ -54,7 +55,9 @@ class plant extends base {
                         $insert['status'] = 1;
                         $plant_record_id = $this->plant_record_model->insert($insert);
                         if($plant_record_id){
-                            $result = array('code'=>1,'msg'=>'成功','time'=>time(),'land_id'=>$land_id,'plant_record_id'=>$plant_record_id);
+                            //获取该种子苗子的图片
+                            $begin_thumb = $this->goods_model->get_column_row('beginThumb',array('id'=>$seed_id));
+                            $result = array('code'=>1,'msg'=>'成功','time'=>time(),'land_id'=>$land_id,'plant_record_id'=>$plant_record_id,'begin_thumb'=>$begin_thumb['beginThumb']);
                         }else{
                             $result = array('code'=>0,'msg'=>'保存种植表错误','time'=>time(),'id'=>$land_id,'plant_record_id'=>$plant_record_id);
                         }
@@ -86,6 +89,7 @@ class plant extends base {
      * 	    message：描述信息
      *      land_id: 土地id
      *      plant_record_id :种植记录id
+     *      complete_thumb : 作物成熟时的图片
      **/
     public function end_plant(){
         //$uId = $_SESSION['userId'];
@@ -110,7 +114,9 @@ class plant extends base {
                             $update_plant_record['status'] = 2;
                             $res = $this->plant_record_model->update($update_plant_record,array('id' => $plant_record_id,'uId'=>$uId));
                             if($res){
-                                $result = array('code'=>1,'msg'=>'成功','time'=>time(),'land_id'=>$land_id,'plant_record_id'=>$plant_record_id);
+                                //获取该作物成熟时的图片
+                                $complete_thumb = $this->goods_model->get_column_row('completeThumb',array('id'=>$plant_arr['goodsId']));
+                                $result = array('code'=>1,'msg'=>'成功','time'=>time(),'land_id'=>$land_id,'plant_record_id'=>$plant_record_id,'complete_thumb'=>$complete_thumb['completeThumb']);
                             }else{
                                 $result = array('code'=>0,'msg'=>'更新种植记录表错误','time'=>time());
                             }
