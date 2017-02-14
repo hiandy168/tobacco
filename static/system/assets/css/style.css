@@ -1,0 +1,39 @@
+@charset "utf-8";
+/* CSS Document */
+html,body{height:auto;}
+.login-logo{background:#0CF; margin-bottom:10px;}
+.login-container .input-group>.form-control, #login-box-inner .input-group>.input-group-addon {
+	height: 46px;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+.login-container .input-group>.input-group-addon {
+	height: 44px;
+	min-width:50px;
+	background:#fbfbfb;
+	border-top-left-radius: 3px!important;
+  border-bottom-left-radius: 3px!important;
+}
+
+.login-container{max-width:500px; margin:10% auto 0 auto;}
+.login-container .loginbox .loginbox-textbox .form-control {
+border-top-left-radius: 0!important;
+  border-bottom-left-radius: 0!important;
+  font-size:18px;
+}
+.login-container  .input-group .input-group-addon i{ color:#ccc;}
+.loginbox-submit .btn{height:44px;  font-size:14px; font-weight:boldl;text-shadow: 0 1px 0 #069; font-weight:bold  }
+.copyright{text-align:center; color:#666;}
+.loading-container{background-image:url(../img/loading.gif); background-repeat:no-repeat; background-position:center center; }
+
+.setting_txt{line-height:45px; color:#fff;}
+.setting_txt a{color:#fff; margin:0 5px;}
+.pagination{ text-align:center; width:100%;}
+.pagination li{display:inline-block;}
+.form-horizontal .control-label{padding-top: 7px;margin-bottom: 0;text-align: right;}
+.modal-body .form-control{ width:auto;}
+.modal-body  .input-group-addon{ float:left; display:block; height:34px; width:34px; line-height:34px; padding:0px;}
+
+.mpage{width:100%;height:163px;overflow:hidden;margin:0 auto;position:relative;background-color:#00c1ff;}
+.anit,.veinbg{position:absolute;left:0;top:0;width:100%;height:163px;}
+.login_logo{position:absolute; top:60px; left:110px;}
