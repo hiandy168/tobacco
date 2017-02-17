@@ -79,7 +79,7 @@
             <div>
                 <div class="form-inline"> <span>
           <form action="<?=$this->baseurl?>&m=index" method="post">
-              <input type="checkbox" id="order" <?php if($order == 'leDouNum'){echo "checked";} ?> align="center" style=" vertical-align:text-bottom;margin-bottom:-0px;*margin-bottom:-3px; margin-right: 2px;" >按乐豆数量降序排序
+              <input type="checkbox" id="order" <?php if($order == 'totalPrice'){echo "checked";} ?> align="center" style=" vertical-align:text-bottom;margin-bottom:-0px;*margin-bottom:-3px; margin-right: 2px;" >按总价降序排序
               <div class="form-group">
 				<span class="input-icon">
               <input type="text" name="keywords" value="" class="form-control input-sm">
@@ -93,30 +93,31 @@
                        class="table table-hover table-bordered" id="sortTable">
                     <tr>
                         <th width="30">排序</th>
+                        <th>购买记录id</th>
                         <th >头像</th>
                         <th align="left">微信昵称</th>
                         <th align="left">openid</th>
-                        <th >等级</th>
-                        <th >经验值</th>
-                        <th >乐豆数量</th>
-                        <th >金币数量</th>
-                        <th >首次参与时间</th>
-                        <th >最近一次活跃时间</th>
-
+                        <th >物品名称</th>
+                        <th >物品单价</th>
+                        <th >物品数量</th>
+                        <th >物品总价</th>
+                        <th >支付货币</th>
+                        <th >购买时间</th>
                         <th >操作</th>
                     </tr>
-                    <?php  $sex = array('未知','男','女');foreach($list as $key=>$r) {?>
+                    <?php foreach($list as $key=>$r) {?>
                         <tr class="sortTr">
                             <td><?=$key+1?></td>
-                            <td class="phone" data-phone='<?=$r['phoneOs']?>'><img src="<?=$r['headImg'] ? $r['headImg']: $r['localImg']?>" width="40" height="40" /></td>
+                            <td><?=$r['id']?></td>
+                            <td><img src="<?=$r['headImg'] ? $r['headImg']: $r['localImg']?>" width="40" height="40" /></td>
                             <td ><?=$r['nickName']?></td>
                             <td><?=$r['openId']?></td>
-                            <td><?=$r['gameGrade']?></td>
-                            <td><?=$r['experienceValue']?></td>
-                            <td><?=$r['leDouNum']?></td>
-                            <td><?=$r['goldNum']?></td>
+                            <td><?=$r['goodsName']?></td>
+                            <td><?=$r['singlePrice']?></td>
+                            <td><?=$r['totalNum']?></td>
+                            <td><?=$r['totalPrice']?></td>
+                            <td><?=$r['payType']?"金币":"乐豆";?></td>
                             <td title="<?=times($r['addTime'],1)?>"><?=times($r['addTime'],1)?></td>
-                            <td title="<?=times($r['updateTime'],1)?>"><?=times($r['updateTime'],1)?></td>
 
                             <td>
                                 <span class="btn btn-blue btn-xs icon-only white"><?=zy_a('Manager_update',$r['status']?'<i class="fa fa-lock" title="已拉黑"></i>':'<i class="fa fa-unlock" title="拉黑"></i>','index.php?d=admin&c=player&m=lock&UID='.$r['userId']);?></span>

@@ -5,9 +5,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Protocols/GatewayProtocol.php';
 require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Lib/Context.php';
 require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Lib/Gateway.php';
+require_once './GatewayWorker-for-win/vendor/workerman/workerman-for-win/Worker.php';
+require_once './GatewayWorker-for-win/vendor/workerman/workerman-for-win/Lib/Timer.php';
 
+
+use \Workerman\Worker;
+use \Workerman\WebServer;
+use \GatewayWorker\Gateway;
+use \GatewayWorker\BusinessWorker;
+use \Workerman\Autoloader;
+
+// 自动加载类
+require_once './GatewayWorker-for-win/vendor/autoload.php';
 // GatewayClient 3.0.0版本开始要使用命名空间
-use \GatewayWorker\Lib\Gateway;
+/*use \GatewayWorker\Lib\Gateway;
+use \Workerman\Worker;*/
+use \Workerman\Lib\Timer;
 class bind extends CI_Controller {
     /**
     //加载GatewayClient
@@ -46,7 +59,21 @@ class bind extends CI_Controller {
         Gateway::sendToClient($client_id, json_encode($data));
     }
 
+    public function sent_to_all(){
+        Gateway::$registerAddress = '127.0.0.1:8090';
+        $message = array("type"=>"say_to_all","content"=>"hello everyone");
+        Gateway::sendToAll(json_encode($message['content']));
+    }
 
+    public function timer(){
+        //Gateway::$registerAddress = '127.0.0.1:8090';
+        //$message = array("type"=>"say_to_all","content"=>"add timer success");
+        $time_interval = 5;
+        Timer::add($time_interval, function()
+        {
+            Gateway::sendToAll(json_encode("add timer success"));
+        });
+    }
 
 }
 

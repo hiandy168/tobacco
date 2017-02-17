@@ -79,7 +79,7 @@
             <div>
                 <div class="form-inline"> <span>
           <form action="<?=$this->baseurl?>&m=index" method="post">
-              <input type="checkbox" id="order" <?php if($order == 'leDouNum'){echo "checked";} ?> align="center" style=" vertical-align:text-bottom;margin-bottom:-0px;*margin-bottom:-3px; margin-right: 2px;" >按乐豆数量降序排序
+              <input type="checkbox" id="order" <?php if($order == 'status'){echo "checked";} ?> align="center" style=" vertical-align:text-bottom;margin-bottom:-0px;*margin-bottom:-3px; margin-right: 2px;" >按状态排序
               <div class="form-group">
 				<span class="input-icon">
               <input type="text" name="keywords" value="" class="form-control input-sm">
@@ -114,10 +114,10 @@
                             <td><?=$r['openId']?></td>
                             <td><?=$r['yanye']['goodsName'].'/'.$r['yanye']['yanyeNum']?></td>
                             <td><?=$r['spice']['goodsName'].'/'.$r['spice']['spiceNum']?></td>
-                            <td><?=$r['filter']['goodsName'].'/'.$r['yanye']['filterNum']?></td>
+                            <td><?=$r['filter']['goodsName'].'/'.$r['filter']['filterNum']?></td>
                             <td><?=$r['goodsName']?></td>
-                            <td title="<?=times($r['startWorkingTime'],1)?>"><?=timeFromNow($r['startWorkingTime'])?></td>
-                            <td title="<?=times($r['endWorkingTime'],1)?>"><?=timeFromNow($r['endWorkingTime'])?></td>
+                            <td title="<?=times($r['startWorkingTime'],1)?>"><?=times($r['startWorkingTime'],1)?></td>
+                            <td title="<?=times($r['endWorkingTime'],1)?>"><?=times($r['endWorkingTime'],1)?></td>
 
                             <td>
                                 <span class="btn btn-blue btn-xs icon-only white"><?=zy_a('Manager_update',$r['status']?'<i class="fa fa-lock" title="已拉黑"></i>':'<i class="fa fa-unlock" title="拉黑"></i>','index.php?d=admin&c=player&m=lock&UID='.$r['userId']);?></span>

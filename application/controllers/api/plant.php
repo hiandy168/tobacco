@@ -17,7 +17,7 @@ class plant extends base {
      *接收参数：
      *      md5_uid：'66e16d4c71fe0616c864c5d591ab0be7' 用户加密id(暂时写死)
      *      land_id：土地编号 0,1,2,3,4,5 ......
-     *      seed_type：种子ID 1巴西种子，2海南种子，3古巴种子
+     *      seed_id：种子ID 1a种子，2b种子，3c种子
      *返回参数：
      * 	    code：返回码 1正确, 0错误
      * 	    message：描述信息
@@ -36,6 +36,11 @@ class plant extends base {
             $land_id = $this->input->post("land_id");
             $seed_id = $this->input->post("seed_id");
             $is_land_free = $this->get_land_status($land_id);//判断土地是否空闲
+            if($is_land_free){
+                $result = array('code'=>0,'msg'=>'土地不是空闲状态','time'=>time());
+                echo json_encode($result,JSON_UNESCAPED_UNICODE);
+                exit;
+            }
             //判断种子是否充足
             $num = $this->store_house_model->get_column_row('num',array('goodsId'=>$seed_id,'uId'=>$uId));
             if($num['num']>=1){
@@ -279,6 +284,7 @@ class plant extends base {
     public function initialize(){
         $md5_uid = $this->input->post("md5_uid");
         $uId = $this->user_model->get_uid($md5_uid);
+        $time  = time();
         if($uId){
             //种植
             $res = $this->land_model->get_current_all_plant($uId);
@@ -293,6 +299,9 @@ class plant extends base {
                         $update_plant_record['endPlantTime'] = time();
                         $this->plant_record_model->update($update_plant_record,array('id'=>$value['plant_record_id'],'uId'=>$uId));
                         $res[$key]['landStatus'] = 2;
+                    }
+                    if($value['landStatus']==1){
+                        $res[$key]['sy_time'] = $need_time['needTime']-($time-$value['startPlantTime']);
                     }
                     $res[$key]['needTime'] = $need_time['needTime'];
                     $res[$key]['goodsName'] = $need_time['goodsName'];
@@ -319,6 +328,9 @@ class plant extends base {
                         $working_res[$key]['endWorkingTime'] = $update_working_record['endWorkingTime'];
                     }
                 }
+                if($value['status']==1){
+                    $working_res[$key]['sy_time'] = $need_working['needTime']-($time-$value['startWorkingTime']);
+                }
                 $working_res[$key]['needTime'] = $need_working['needTime'];
                 $working_res[$key]['goodsName'] = $need_working['goodsName'];
                 //根据配方id,查找配方加工后对应的物品
@@ -340,6 +352,9 @@ class plant extends base {
                         $packing_res[$key]['status'] = 2;
                         $packing_res[$key]['endPackingTime'] = $update_packing_record['endPackingTime'];
                     }
+                }
+                if($value['status']==1){
+                    $packing_res[$key]['sy_time'] = $need_packing['needTime']-($time-$value['startPackingTime']);
                 }
                 $packing_res[$key]['needTime'] = $need_packing['needTime'];
                 $packing_res[$key]['goodsName'] = $need_packing['goodsName'];
@@ -363,6 +378,9 @@ class plant extends base {
                         $breed_res[$key]['endBreedTime'] = $update_breed_record['endBreedTime'];
                     }
                 }
+                if($value['status']==1){
+                    $breed_res[$key]['sy_time'] = $need_breed['breedTime']-($time-$value['startBreedTime']);
+                }
                 $breed_res[$key]['needTime'] = $need_breed['breedTime'];
                 $breed_res[$key]['goodsName'] = $need_breed['goodsName'];
             }
@@ -379,6 +397,9 @@ class plant extends base {
                         $research_res[$key]['status'] = 2;
                         $research_res[$key]['endResearchTime'] = $update_research_record['endResearchTime'];
                     }
+                }
+                if($value['status']==1){
+                    $research_res[$key]['sy_time'] = $need_research['breedTime']-($time-$value['startResearchTime']);
                 }
                 $research_res[$key]['needTime'] = $need_research['breedTime'];
                 $research_res[$key]['goodsName'] = $need_research['goodsName'];

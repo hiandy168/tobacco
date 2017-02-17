@@ -19,7 +19,7 @@ class store_house_model extends content_model
 
     //获取当前仓库存储的 种子 数量 图片
     public function get_seed_num($uId){
-        $res = $this->db->query("SELECT g.id,g.goodsName,g.thumb,h.num FROM zy_store_house h,zy_goods g WHERE h.uId=$uId AND g.goodsClass = 1 AND h.goodsId=g.id")->result_array();
+        $res = $this->db->query("SELECT g.id,g.goodsName,g.thumb,h.num FROM zy_store_house h,zy_goods g WHERE h.uId=$uId AND g.goodsClass = 1 AND h.goodsId=g.id ORDER BY g.id ASC")->result_array();
         return $res;
     }
 

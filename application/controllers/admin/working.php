@@ -48,7 +48,7 @@ class working extends Content
         $data['pages'] = $this->pagination->create_links();
         $offset = $_GET['per_page'] ? intval($_GET['per_page']) : 0;
         $per_page = $config['per_page'];
-        $data_sql = 'select a.*,b.nickName,b.openId,b.localImg,c.goodsName FROM '.$this->table.' a ,zy_user b,zy_goods c where '.$searchsql.' AND b.userId=a.uId AND c.id=a.goodsId ORDER BY ' .$order_sql. ' limit '. $offset . ','.$this->per_page;
+        $data_sql = 'select a.*,b.nickName,b.openId,b.headImg,b.localImg,c.goodsName FROM '.$this->table.' a ,zy_user b,zy_goods c where '.$searchsql.' AND b.userId=a.uId AND c.id=a.goodsId ORDER BY ' .$order_sql. ' limit '. $offset . ','.$this->per_page;
         $query = $this->db->query( $data_sql );
         $result = $query->result_array();
         foreach($result as $key=>$value){

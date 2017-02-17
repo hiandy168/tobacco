@@ -1,12 +1,13 @@
 <?php
 //加载GatewayClient GatewayWorker-for-win
-require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Protocols/GatewayProtocol.php';
-require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Lib/Context.php';
-require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Lib/Gateway.php';
+//require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Protocols/GatewayProtocol.php';
+//require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Lib/Context.php';
+//require_once './GatewayWorker-for-win/vendor/workerman/gateway-worker-for-win/src/Lib/Gateway.php';
 require_once './GatewayWorker-for-win/vendor/workerman/workerman-for-win/Worker.php';
 require_once './GatewayWorker-for-win/vendor/workerman/workerman-for-win/Lib/Timer.php';
+require_once './GatewayWorker-for-win/vendor/autoload.php';
 
-use \GatewayWorker\Lib\Gateway;
+//use \GatewayWorker\Lib\Gateway;
 use \Workerman\Worker;
 use \Workerman\Lib\Timer;
 $task = new Worker();

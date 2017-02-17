@@ -68,7 +68,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
     <script type="application/javascript">
         // 与GatewayWorker建立websocket连接，域名和端口改为你实际的域名端口
-        ws = new WebSocket("ws://192.168.1.217:8080");
+        ws = new WebSocket("ws://192.168.1.217:8090");
         // 服务端主动推送消息时会触发这里的onmessage
         ws.onmessage = function(e){
             // json数据转换成js对象
